@@ -50,7 +50,6 @@ class ServerlessEnvLocal {
       this.lambda.getFunctionConfiguration({FunctionName: `${stackName}-${functionName}`})
           .promise().then((functionDetails) => {
         const envVars = _.get(functionDetails, 'Environment.Variables', {});
-        const createFileResult = this.createCFFile(functionName, envVars);
         return this.createCFFile(functionName, envVars);
       }).catch((err) => {
         this.serverless.cli.log(`[serverless-env-local] Error looking up ENV vars for ${stackName}-${functionName}. Stack must have been deployed before running locally`);
@@ -72,7 +71,8 @@ class ServerlessEnvLocal {
   getEnvDirectory() {
     const customDirectory = this.serverless.service.custom && this.serverless.service.custom['resource-output-dir'];
     const directory = customDirectory || '.serverless-env-local';
-    return `${this.serverless.config.servicePath}/${directory}`;
+    const basePath = _.replace(this.serverless.config.servicePath, '/.webpack/service', '');
+    return `${basePath}/${directory}`;
   }
 
   getEnvFileName(functionName) {
@@ -109,7 +109,7 @@ class ServerlessEnvLocal {
     const fullFileName = `${path}/${fileName}`;
     // Reduce this to a simple properties file format
     const data = _.reduce(resources, (properties, item, key) =>
-        `${properties}${key}=${item}\n`, '');
+        `${properties}${key}=${_.replace(item, /\n/g, "\\n")}\n`, '');
     // Return a promise of this file being written
     return new Promise((resolve, reject) => {
       this.fs.writeFile(fullFileName, data, function(err) {
