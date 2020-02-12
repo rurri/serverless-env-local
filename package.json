@@ -1,6 +1,6 @@
 {
   "name": "serverless-env-local",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Run Serverless Lambdas locally using dynamic env variables from Cloudformation",
   "main": "index.js",
   "author": "Jason",
