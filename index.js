@@ -20,8 +20,7 @@ class ServerlessEnvLocal {
     // only a function deploy will not modify any CF resources
     this.hooks = {
       'after:deploy:deploy': this.afterDeploy.bind(this),
-      // 'before:invoke:local:loadEnvVars': this.beforeLocalInvoke.bind(this),
-      'before:invoke:local:invoke': this.beforeLocalInvoke.bind(this),
+      'after:invoke:local:loadEnvVars': this.beforeLocalInvoke.bind(this),
     };
 
     // Stash the context away for later
@@ -64,8 +63,12 @@ class ServerlessEnvLocal {
     const path = this.getEnvDirectory();
     const fullPath = `${path}/${fileName}`;
     this.serverless.cli.log(`[serverless-env-local] Pulling in env variables from ${fullPath}`);
-    const functionObject = _.get(this.serverless, ['service', 'functions', this.options.function]);
-    functionObject.environment = this.getCFFileVars(this.options.function);
+    const envVars = this.getCFFileVars(this.options.function);
+    _.each(_.toPairs(envVars), envVar => {
+      const [key, value] = envVar;
+      process.env[key] = value;
+    });
+
   }
 
   getEnvDirectory() {
